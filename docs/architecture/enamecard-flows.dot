@@ -1,0 +1,64 @@
+// eNameCard creator — end-to-end contact data flow (current state).
+// Question: how does the owner's form input become a saved contact on someone else's phone?
+// Produced by flow-visualizer + graphviz (Architecture Visualization plugin).
+// Evidence: enamecard-flows.evidence.md. Regenerate SVG: dot -Tsvg enamecard-flows.dot -o enamecard-flows.svg
+digraph enamecard_flows {
+  rankdir=TB;
+  nodesep=0.35;
+  ranksep=0.55;
+  fontname="Helvetica";
+  node [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#55666f"];
+  edge [fontname="Helvetica", fontsize=9, color="#55666f"];
+
+  owner [label="Card owner\n(you)", shape=ellipse, fillcolor="#e6fffa", color="#0f766e"];
+  visitor [label="New connection\n(visitor)", shape=ellipse, fillcolor="#e6fffa", color="#0f766e"];
+
+  subgraph cluster_browser {
+    label="Trust boundary: your browser — nothing is uploaded";
+    style="rounded,dashed"; color="#0f766e"; fontcolor="#0f766e"; fontsize=11;
+    form [label="UI: contact form\n(#edit)", fillcolor="#f0fdfa"];
+    model [label="Contact model\nnormalize / forOutput", fillcolor="#f0fdfa"];
+    draft [label="localStorage draft\n(auto-save)", shape=cylinder];
+    vcard [label="vCard 3.0 writer\nescape / fold / CRLF", fillcolor="#f0fdfa"];
+    qr [label="QR renderer\nauto: vCard ≤600 B, else URL", fillcolor="#f0fdfa"];
+    vcffile [label="contact.vcf\n(download / share)", shape=note, fillcolor="#fffbeb"];
+    qrfile [label="QR PNG / SVG\n(download, print)", shape=note, fillcolor="#fffbeb"];
+    jsonfile [label="card.json\n(export)", shape=note, fillcolor="#fffbeb"];
+  }
+
+  subgraph cluster_github {
+    label="Your fork on GitHub — public by design";
+    style="rounded,dashed"; color="#55666f"; fontsize=11;
+    repo [label="public/card.json\n(committed)", shape=cylinder];
+    action [label="GitHub Actions\nnpm test + vite build"];
+    pages [label="GitHub Pages\nstatic site", shape=cylinder, fillcolor="#eef2ff"];
+  }
+
+  subgraph cluster_phone {
+    label="Visitor's phone";
+    style="rounded,dashed"; color="#55666f"; fontsize=11;
+    camera [label="Camera app\nscans QR"];
+    cardpage [label="Published card page\nSave contact button"];
+    contacts [label="Contacts app\nnew contact saved", shape=cylinder, fillcolor="#e6fffa"];
+  }
+
+  wallet [label="TARGET: Wallet pass\n(hosted service, not this repo)\n.pkpass carries the same QR", style="rounded,filled,dashed", fillcolor="#f5f5f5", fontcolor="#55666f"];
+
+  owner -> form [label="fills fields"];
+  form -> model [label="input events"];
+  model -> draft [label="writes every edit"];
+  model -> vcard [label="forOutput(card)"];
+  vcard -> qr [label="payload, photo excluded"];
+  vcard -> vcffile [label="Blob download"];
+  qr -> qrfile [label="canvas PNG / SVG"];
+  model -> jsonfile [label="JSON export"];
+  owner -> repo [label="manual: commit exported card.json", style=dashed];
+  repo -> action [label="push triggers"];
+  action -> pages [label="deploys dist/"];
+  pages -> cardpage [label="static GET only"];
+  visitor -> camera [label="scans your QR"];
+  camera -> contacts [label="offline-vCard QR →\nnative Add Contact"];
+  camera -> cardpage [label="URL QR → opens page"];
+  cardpage -> contacts [label="Save contact → .vcf →\nnative import"];
+  qr -> wallet [label="same QR as pass barcode", style=dashed, constraint=false];
+}

@@ -1,0 +1,33 @@
+{
+  "sample": true,
+  "nameCJK": "陳大文",
+  "nameLatin": "David Chan",
+  "family": "",
+  "given": "",
+  "middle": "",
+  "phoneticGiven": "",
+  "phoneticFamily": "",
+  "nickname": "David",
+  "orgLatin": "Example Limited",
+  "orgCJK": "範例有限公司",
+  "department": "Product",
+  "title": "Product Manager",
+  "phones": [
+    { "type": "CELL", "value": "+852 6000 0000" },
+    { "type": "WORK", "value": "+852 3000 0000" }
+  ],
+  "emails": [
+    { "type": "WORK", "value": "david@example.com" }
+  ],
+  "addresses": [
+    { "type": "WORK", "street": "1 Example Street", "city": "Hong Kong", "region": "", "code": "", "country": "Hong Kong" }
+  ],
+  "urls": [
+    { "label": "Website", "value": "https://example.com" },
+    { "label": "LinkedIn", "value": "https://www.linkedin.com/in/example" }
+  ],
+  "birthday": "",
+  "note": "Sample card — replace public/card.json with your own export.\n示範名片 — 請以你自己的 card.json 取代。",
+  "photo": "",
+  "cardUrl": ""
+}

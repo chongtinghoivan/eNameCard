@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta
+      name="description"
+      content="Create your own digital name card: fill in your contact details, share a QR code or .vcf, and deploy your card page free on GitHub Pages. Nothing leaves your device."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>eNameCard — create your own digital name card</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <h1>eNameCard</h1>
+      <p class="tagline">Create your own digital name card · <span data-i18n="tagline">自製電子名片 · 一掃即存</span></p>
+      <p class="trust">
+        Nothing leaves your device — no server, no account, no tracking ·
+        <span data-i18n="trust">所有資料只留在你的裝置 — 沒有伺服器、沒有帳戶、沒有追蹤。</span>
+      </p>
+      <fieldset class="locale" id="locale-set">
+        <legend>語言 Language</legend>
+        <label><input type="radio" name="locale" value="hant" checked /><span>繁體 Traditional</span></label>
+        <label><input type="radio" name="locale" value="hans" /><span>簡体 Simplified</span></label>
+      </fieldset>
+    </header>
+
+    <main>
+      <section id="editor-view" hidden>
+        <div class="editor-grid">
+          <form id="card-form" autocomplete="on" novalidate></form>
+          <aside id="preview-panel" aria-label="Card preview"></aside>
+        </div>
+      </section>
+      <section id="card-view" hidden></section>
+    </main>
+
+    <footer class="site-footer">
+      <a href="https://github.com/chongtinghoivan/eNameCard" rel="noopener">eNameCard on GitHub</a>
+      — MIT licensed, fork it and deploy your own.
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

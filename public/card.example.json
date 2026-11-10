@@ -1,0 +1,30 @@
+{
+  "nameCJK": "",
+  "nameLatin": "",
+  "family": "",
+  "given": "",
+  "middle": "",
+  "phoneticGiven": "",
+  "phoneticFamily": "",
+  "nickname": "",
+  "orgLatin": "",
+  "orgCJK": "",
+  "department": "",
+  "title": "",
+  "phones": [
+    { "type": "CELL", "value": "" }
+  ],
+  "emails": [
+    { "type": "WORK", "value": "" }
+  ],
+  "addresses": [
+    { "type": "WORK", "street": "", "city": "", "region": "", "code": "", "country": "" }
+  ],
+  "urls": [
+    { "label": "", "value": "" }
+  ],
+  "birthday": "",
+  "note": "",
+  "photo": "",
+  "cardUrl": ""
+}

@@ -1,0 +1,410 @@
+:root {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --ink: #16212b;
+  --ink-soft: #55666f;
+  --line: #dfe5ea;
+  --accent: #0f766e;
+  --accent-ink: #ffffff;
+  --warn: #b45309;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(22, 33, 43, 0.06), 0 8px 24px rgba(22, 33, 43, 0.06);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1720;
+    --panel: #17222c;
+    --ink: #e8eef2;
+    --ink-soft: #9fb1bc;
+    --line: #26333f;
+    --accent: #2dd4bf;
+    --accent-ink: #06231f;
+    --shadow: none;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang TC",
+    "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK TC", "Noto Sans CJK SC", sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+.masthead {
+  background: var(--accent);
+  color: #f0fdfa;
+  padding: calc(1.4rem + env(safe-area-inset-top)) 1rem 1.5rem;
+  text-align: center;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  letter-spacing: 0.02em;
+}
+
+.masthead .tagline {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+}
+
+.masthead .trust {
+  margin: 0.6rem auto 0;
+  max-width: 46rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.locale {
+  display: inline-flex;
+  gap: 1rem;
+  margin: 0.9rem 0 0;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.locale legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.locale label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.card-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.2rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+
+fieldset.card-panel {
+  min-width: 0;
+}
+
+legend {
+  font-weight: 650;
+  padding: 0 0.4rem;
+  font-size: 1.02rem;
+}
+
+.editor-grid {
+  display: grid;
+  gap: 1.1rem;
+}
+
+@media (min-width: 64rem) {
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem);
+    align-items: start;
+  }
+
+  .preview-sticky {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.field {
+  display: block;
+  margin: 0.55rem 0;
+}
+
+.label-text {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.2rem;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="url"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.rows {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row select {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.row input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.row-remove {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.row-add {
+  margin-top: 0.6rem;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--accent);
+}
+
+button {
+  font: inherit;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.actions button {
+  margin: 0 0.45rem 0.45rem 0;
+}
+
+.hint {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0.5rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.editor-nav {
+  margin: 0 0 0.8rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* The digital card itself */
+.ncard-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.ncard-photo,
+.ncard-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  object-fit: cover;
+}
+
+.ncard-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 1.7rem;
+  font-weight: 650;
+}
+
+.ncard-name {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.ncard-role {
+  margin: 0.2rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.contact-rows {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.contact-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  align-items: baseline;
+}
+
+.contact-label {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.contact-row a,
+.contact-row span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.ncard-note {
+  margin: 0.8rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* QR panel — the box stays white in both themes so the code scans. */
+.qr-panel h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.qr-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.88rem;
+}
+
+.qr-modes label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.qr-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.6rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.qr-box svg {
+  display: block;
+  width: 220px;
+  height: auto;
+  max-width: 100%;
+}
+
+.qr-bytes {
+  text-align: center;
+}
+
+/* Published card page */
+.published-wrap {
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+.published-actions {
+  justify-content: center;
+}
+
+.published-footer {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  margin-top: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.sample-banner {
+  max-width: 26rem;
+  margin: 0 auto 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  color: var(--warn);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  padding: 1.2rem 1rem 2rem;
+}
