@@ -50,6 +50,14 @@ test('N is structured and escaped; family/given derived when blank', () => {
   assert.ok(properties(v).includes('N:陳;大文;;;'));
 });
 
+test('bilingual card omits N so iOS falls back to FN display', () => {
+  const c = forOutput(card({ nameCJK: '莊庭皓', nameLatin: 'Ivan Chong' }));
+  const v = buildVCard(c);
+  const props = properties(v);
+  assert.ok(!props.some((p) => p.startsWith('N:')), 'N must be absent for bilingual card');
+  assert.ok(props.includes('FN:Ivan Chong | 莊庭皓'));
+});
+
 test('TEXT escaping: backslash, semicolon, comma, newline', () => {
   assert.equal(escapeText('a;b,c\\d\ne'), 'a\\;b\\,c\\\\d\\ne');
   const v = buildVCard(card({ note: 'key;value, with\\slash' }));

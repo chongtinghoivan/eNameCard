@@ -75,9 +75,17 @@ export function buildVCard(c, { photo = true } = {}) {
   const given = (c.given || '').trim();
   const middle = (c.middle || '').trim();
   const display = displayName(c);
-  if (display || family || given) {
+  // When both CJK and Latin names are present (bilingual card), iOS Contacts
+  // prioritises the structured N field over FN, so "Family Given" wins and the
+  // English name disappears from the display. Skip writing N in that case so iOS
+  // falls back to FN, which carries the combined bilingual string ("Ivan Chong |
+  // 莊庭皓") and remains searchable via Spotlight.
+  const hasBothScripts = Boolean((c.nameCJK || '').trim() && (c.nameLatin || '').trim());
+  if (!hasBothScripts && (family || given)) {
     push(lines, 'N', [family, given, middle].map(escapeText).join(';') + ';;');
     push(lines, 'FN', escapeText(display || [family, given].filter(Boolean).join(' ')));
+  } else {
+    push(lines, 'FN', escapeText(display));
   }
   push(lines, 'NICKNAME', escapeText(c.nickname));
   push(lines, 'X-PHONETIC-FIRST-NAME', escapeText(c.phoneticGiven));

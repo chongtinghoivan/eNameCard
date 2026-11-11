@@ -267,7 +267,7 @@ function publishSection() {
 async function processPhoto(file) {
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 256 / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(bitmap.width * scale));
     canvas.height = Math.max(1, Math.round(bitmap.height * scale));
