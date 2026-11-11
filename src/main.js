@@ -131,6 +131,18 @@ function renderForm() {
   for (const sec of SECTIONS) {
     const fieldset = section(sec.en, sec.key);
     for (const field of sec.fields) fieldset.append(labeledField(field));
+    // Name section: add a bilingual-contact guidance block so users understand
+    // how their form inputs map to what shows up on the other person's phone.
+    if (sec.id === 'name') {
+      fieldset.append(el('p', 'hint', bi(
+        'What your contacts will see on their phone:', 'contact-preview-hint')));
+      fieldset.append(el('p', 'hint', bi(
+        'Fill in both "English name" and "Chinese name" for a bilingual display ("Ivan Chong | 莊庭皓"). Leave "Family name" and "Given name" empty — the app derives them automatically.',
+        'bilingual-tip')));
+      fieldset.append(el('p', 'hint', bi(
+        'Use a square or portrait photo (e.g. a headshot). Wide banner images become too narrow for a contact avatar.',
+        'photo-tips')));
+    }
     form.append(fieldset);
   }
 
