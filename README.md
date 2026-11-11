@@ -94,14 +94,6 @@ public/card.example.json  blank template
 Routing rule: if `public/card.json` exists and has a name or company, the site root is
 the published card; otherwise (and at `#edit`) it is the editor.
 
-## Roadmap: Apple Wallet / Google Wallet
-
-A Wallet pass cannot add a contact by itself — it carries a QR barcode that the other
-person scans. Signing `.pkpass` files requires an Apple Developer certificate (US$99/yr)
-and a server holding the private key, which does not fit a fork-and-deploy static site.
-Wallet passes are planned for the hosted eNameCard service, where one platform
-certificate signs passes for everyone. QR + `.vcf` remains the universal baseline.
-
 ## License
 
 [MIT](LICENSE) — fork it, rebrand it, deploy it.
