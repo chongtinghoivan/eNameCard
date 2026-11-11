@@ -30,6 +30,7 @@ Operating contract for coding agents. Product context and user-facing docs: `REA
 - Bilingual labels: fixed English + `·` + Chinese via `bi(en, key)`; Chinese swaps 繁/簡 as a whole through the curated dictionary in `src/i18n.js`. Never use a fuzzy auto-converter; add new strings to `STRINGS`.
 - User data into the DOM only via `textContent`; links through `normalizeUrl()` (forces http/https); photo `src` only after the JPEG data-URL whitelist in `normalizeCard()`.
 - Routing: `public/card.json` with a name/org → published card at root; `#edit` (or no card.json) → editor. Draft persists in `localStorage['enamecard.card.v1']`.
+- Share contact is always visible: native file share first, in-page fallback menu (copy link / copy vCard / email) when unsupported or rejected. Never gate it behind `canShare()` alone — desktop Chrome can report support yet reject `.vcf` files.
 
 ## Architecture docs
 

@@ -18,7 +18,7 @@ your browser, and your deployed card is just static files.
 | --- | --- |
 | **QR, offline vCard** | Their camera app reads the contact straight out of the QR code and offers "Add to Contacts". Works with no internet, no server. |
 | **QR, card link** | The QR opens your published card page; one tap on **Save contact** downloads the `.vcf` and the phone opens its native New Contact screen. |
-| **.vcf download / share** | The classic route — AirDrop, email, messaging apps, any phone that reads vCard. |
+| **.vcf download / share** | The classic route — AirDrop, email, messaging apps, any phone that reads vCard. On desktop browsers without a share sheet, **Share** offers copy link, copy vCard text, and email instead. |
 
 The QR auto-picks: small cards embed the vCard directly; larger cards switch to the card
 link so the code stays easy to scan. You can force either mode. Photos go into the `.vcf`

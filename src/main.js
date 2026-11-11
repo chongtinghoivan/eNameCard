@@ -417,12 +417,7 @@ function buildPreviewPanel() {
   vcfBtn.type = 'button';
   vcfBtn.addEventListener('click', () => downloadVcf(card));
   actions.append(vcfBtn);
-  if (canShareVcf()) {
-    const shareBtn = el('button', '', bi('Share contact', 'share-vcf'));
-    shareBtn.type = 'button';
-    shareBtn.addEventListener('click', () => shareVcf(card));
-    actions.append(shareBtn);
-  }
+  actions.append(shareButton(() => card, 'Share contact', () => card.cardUrl.trim() || location.href.split('#')[0]));
   const exportBtn = el('button', '', bi('Export card.json', 'export-json'));
   exportBtn.type = 'button';
   exportBtn.addEventListener('click', () => {
@@ -512,12 +507,140 @@ function canShareVcf() {
   }
 }
 
-async function shareVcf(c) {
-  try {
-    await navigator.share({ files: [vcfFile(c)], title: displayName(forOutput(c)) });
-  } catch {
-    // User cancelled the share sheet — nothing to do.
+async function shareVcf(c, anchor, getLink) {
+  if (canShareVcf()) {
+    try {
+      await navigator.share({ files: [vcfFile(c)], title: displayName(forOutput(c)) });
+      return;
+    } catch (err) {
+      // AbortError = user closed the share sheet. Anything else (desktop
+      // Chrome rejects .vcf files) falls through to the in-page menu.
+      if (err && err.name === 'AbortError') return;
+    }
   }
+  openShareMenu(c, anchor, getLink());
+}
+
+/* ------------------------------------------------------------- share menu */
+
+let closeShareMenu = null;
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Clipboard API refused — legacy selection copy.
+    const ta = el('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.append(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    ta.remove();
+    return ok;
+  }
+}
+
+function openShareMenu(c, anchor, link) {
+  if (closeShareMenu) closeShareMenu();
+  const out = forOutput(c);
+  const menu = el('div', 'share-menu');
+  menu.setAttribute('aria-label', bi('Share options', 'share-options'));
+
+  const close = (restoreFocus) => {
+    menu.remove();
+    document.removeEventListener('pointerdown', onOutside, true);
+    document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('scroll', onScroll, true);
+    anchor.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) anchor.focus();
+    closeShareMenu = null;
+  };
+  const onOutside = (e) => {
+    if (!menu.contains(e.target) && !anchor.contains(e.target)) close(false);
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape') close(true);
+  };
+  const onScroll = (e) => {
+    if (!menu.contains(e.target)) close(false);
+  };
+
+  const item = (label, onClick) => {
+    const b = el('button', '', label);
+    b.type = 'button';
+    b.addEventListener('click', onClick);
+    menu.append(b);
+    return b;
+  };
+  const copyItem = (label, text) => {
+    const b = item(label, async () => {
+      if (await copyText(text)) {
+        b.textContent = bi('Copied', 'copied');
+        b.classList.add('copied');
+        setTimeout(() => {
+          b.textContent = label;
+          b.classList.remove('copied');
+        }, 1600);
+      } else {
+        let box = menu.querySelector('.manual-copy');
+        if (!box) {
+          box = el('div', 'manual-copy');
+          box.append(el('p', 'hint', bi('Copy the text below manually.', 'copy-manual')));
+          box.append(el('textarea'));
+          menu.append(box);
+        }
+        const ta = box.querySelector('textarea');
+        ta.readOnly = true;
+        ta.rows = 4;
+        ta.value = text;
+        ta.focus();
+        ta.select();
+      }
+    });
+    return b;
+  };
+
+  copyItem(bi('Copy card link', 'copy-link'), link);
+  copyItem(bi('Copy vCard text', 'copy-vcard'), buildVCard(out));
+  const email = el('a', '', bi('Send by email', 'email-contact'));
+  const name = displayName(out);
+  email.href = `mailto:?subject=${encodeURIComponent(`Contact: ${name}`)}&body=${encodeURIComponent(`${name}\n${link}`)}`;
+  email.addEventListener('click', () => close(false));
+  menu.append(email);
+
+  document.body.append(menu);
+  const rect = anchor.getBoundingClientRect();
+  const mw = menu.offsetWidth;
+  const mh = menu.offsetHeight;
+  menu.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - mw - 8))}px`;
+  menu.style.top = rect.bottom + mh + 12 > window.innerHeight && rect.top > mh
+    ? `${rect.top - mh - 6}px`
+    : `${rect.bottom + 6}px`;
+
+  document.addEventListener('pointerdown', onOutside, true);
+  document.addEventListener('keydown', onKey, true);
+  window.addEventListener('scroll', onScroll, true);
+  anchor.setAttribute('aria-expanded', 'true');
+  closeShareMenu = close;
+  menu.querySelector('button').focus();
+}
+
+function shareButton(getCard, labelEn, getLink) {
+  const b = el('button', '', bi(labelEn, 'share-vcf'));
+  b.type = 'button';
+  b.setAttribute('aria-expanded', 'false');
+  b.addEventListener('click', () => {
+    if (closeShareMenu) {
+      closeShareMenu(false);
+      return;
+    }
+    shareVcf(getCard(), b, getLink);
+  });
+  return b;
 }
 
 /* -------------------------------------------------------- published card */
@@ -541,12 +664,7 @@ function renderPublished() {
   save.type = 'button';
   save.addEventListener('click', () => downloadVcf(c));
   actions.append(save);
-  if (canShareVcf()) {
-    const share = el('button', '', bi('Share', 'share-vcf'));
-    share.type = 'button';
-    share.addEventListener('click', () => shareVcf(c));
-    actions.append(share);
-  }
+  actions.append(shareButton(() => c, 'Share', () => location.href.split('#')[0]));
   wrap.append(actions);
 
   const qrPanel = el('div', 'qr-panel card-panel');
@@ -593,6 +711,7 @@ async function fetchPublished() {
 }
 
 function route() {
+  if (closeShareMenu) closeShareMenu();
   const wantEditor = location.hash === '#edit' || !published;
   editorView.hidden = !wantEditor;
   cardView.hidden = wantEditor;
