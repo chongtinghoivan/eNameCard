@@ -135,12 +135,13 @@ function renderForm() {
     // how their form inputs map to what shows up on the other person's phone.
     if (sec.id === 'name') {
       fieldset.append(el('p', 'hint', bi(
-        'What your contacts will see on their phone:', 'contact-preview-hint')));
+        'What your contacts will see: the name shows both scripts combined (e.g. Ivan Chong 莊庭皓) and is searchable in either; the photo, phone and email are all saved. QR codes can\u2019t carry the photo \u2014 open the card link or download the .vcf to get the image.',
+        'contact-preview-hint')));
       fieldset.append(el('p', 'hint', bi(
-        'Fill in both "English name" and "Chinese name" for a bilingual display ("Ivan Chong | 莊庭皓"). Leave "Family name" and "Given name" empty — the app derives them automatically.',
+        'Bilingual name: fill in both "English name" and "Chinese name"; leave "Family name" / "Given name" blank and the app works out the split. The .vcf also stores the English reading (phonetic fields) so AI and search can recognise it.',
         'bilingual-tip')));
       fieldset.append(el('p', 'hint', bi(
-        'Use a square or portrait photo (e.g. a headshot). Wide banner images become too narrow for a contact avatar.',
+        'Use a square or portrait photo (e.g. a headshot). Extremely wide or tall images (over 4:1, like banners or screenshots) are rejected \u2014 choose a headshot.',
         'photo-tips')));
     }
     form.append(fieldset);
@@ -241,10 +242,14 @@ function photoSection() {
   file.type = 'file';
   file.accept = 'image/*';
   file.hidden = true;
+  const notice = el('p', 'hint', '');
+  notice.hidden = true;
   file.addEventListener('change', async () => {
-    if (file.files && file.files[0]) await processPhoto(file.files[0]);
+    if (file.files && file.files[0]) {
+      const rejected = await processPhoto(file.files[0], notice);
+      if (rejected) remove.hidden = !card.photo;
+    }
     file.value = '';
-    remove.hidden = !card.photo;
   });
   const choose = el('button', '', bi('Choose photo', 'choose-photo'));
   choose.type = 'button';
@@ -255,11 +260,12 @@ function photoSection() {
   remove.addEventListener('click', () => {
     card.photo = '';
     persist();
+    notice.hidden = true;
     remove.hidden = true;
     updatePreview();
   });
   const hint = el('p', 'hint', bi('Resized into the .vcf, never into the QR (capacity).', 'photo-hint'));
-  fieldset.append(choose, remove, file, hint);
+  fieldset.append(choose, remove, file, hint, notice);
   return fieldset;
 }
 
@@ -276,15 +282,22 @@ function publishSection() {
   return fieldset;
 }
 
-async function processPhoto(file) {
+async function processPhoto(file, notice) {
   try {
     const bitmap = await createImageBitmap(file);
     // Reject extremely wide/tall images (e.g. banners, screenshots) that would
     // produce unusable thumbnails when shrunk to fit 480 px on the long side.
     if (Math.max(bitmap.width, bitmap.height) / Math.min(bitmap.width, bitmap.height) > 4) {
       bitmap.close();
-      return;
+      if (notice) {
+        notice.textContent = bi(
+          'Photo rejected: aspect ratio over 4:1 (too long or narrow). Use a square or portrait headshot — your current photo is unchanged.',
+          'photo-rejected');
+        notice.hidden = false;
+      }
+      return true; // rejected
     }
+    if (notice) notice.hidden = true;
     const scale = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(bitmap.width * scale));
