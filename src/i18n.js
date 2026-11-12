@@ -13,8 +13,8 @@ const I18N_KEY = 'enamecard.locale.v1';
 export const STRINGS = {
   tagline: { hant: '自製電子名片 · 一掃即存', hans: '自制电子名片 · 一扫即存' },
   trust: {
-    hant: '所有資料只留在你的裝置 — 沒有伺服器、沒有帳戶、沒有追蹤。',
-    hans: '所有资料只留在你的设备 — 没有服务器、没有账户、没有追踪。',
+    hant: '沒有分析、沒有後端、沒有帳戶。草稿只存在你的瀏覽器裡；只有你主動發布的名片會存到「你自己的」GitHub Pages，以純靜態檔案形式公開。',
+    hans: '没有分析、没有后端、没有账户。草稿只存在你的浏览器里；只有你主动发布的名片会存到「你自己的」GitHub Pages，以纯静态文件形式公开。',
   },
   'sec-name': { hant: '姓名', hans: '姓名' },
   'sec-work': { hant: '公司與職位', hans: '公司与职位' },

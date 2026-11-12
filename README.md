@@ -2,9 +2,11 @@
 
 **Create your own digital name card — a QR code anyone can scan to save you as a contact.**
 
-Fill in the contact fields you want to share, preview the card live, and publish it as a
-static page anyone can reach. No server, no account, no tracking: everything happens in
-your browser, and your deployed card is just static files.
+Fill in the contact fields you want to share, preview the card in your own browser,
+and publish your card as static files on **your own** GitHub Pages. The app itself has
+no backend, no analytics, and no account requirement; your draft stays in browser
+storage, and only what you choose to publish is pushed — as plain `card.json` + static
+assets — to your fork.
 
 > This repo is the **card creator**. The companion scanner — point a camera at a paper
 > business card and get a `.vcf` — lives at [eNameCard-v2](https://github.com/chongtinghoivan/eNameCard-v2),
