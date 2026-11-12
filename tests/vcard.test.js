@@ -34,9 +34,12 @@ test('empty fields are omitted, not written as blanks', () => {
   assert.ok(!v.includes('PHOTO'));
 });
 
-test('bilingual FN keeps both scripts searchable: "David Chan | 陳大文"', () => {
+test('bilingual card without structured N: FN is a space-joined name (no pipe, stays searchable)', () => {
   const v = buildVCard(card({ nameLatin: 'David Chan', nameCJK: '陳大文' }));
-  assert.ok(properties(v).includes('FN:David Chan | 陳大文'));
+  // A raw card (no N derived by splitName) must not fall back to the pipe,
+  // which iOS does not index for search.
+  assert.ok(properties(v).includes('FN:David Chan 陳大文'));
+  assert.ok(!v.includes('FN:David Chan | 陳大文'));
 });
 
 test('bilingual ORG is one atomic token with department unit', () => {
@@ -50,14 +53,18 @@ test('N is structured and escaped; family/given derived when blank', () => {
   assert.ok(properties(v).includes('N:陳;大文;;;'));
 });
 
-test('bilingual card: structured N carries the Latin name, FN keeps both scripts', () => {
+test('bilingual card: combined "Latin CJK" name in N + FN, phonetic fields keep the Latin reading', () => {
   const c = forOutput(card({ nameCJK: '莊庭皓', nameLatin: 'Ivan Chong' }));
   const v = buildVCard(c);
   const props = properties(v);
-  // N is always emitted (a real, sortable display name on iOS) from the Latin
-  // name; the CJK is preserved in FN so both scripts stay present/searchable.
-  assert.ok(props.includes('N:Chong;Ivan;;;'), `N must come from the Latin name, got: ${props.filter((p) => p.startsWith('N:'))}`);
-  assert.ok(props.includes('FN:Ivan Chong | 莊庭皓'));
+  // iOS displays + indexes N, not the pipe-joined FN. splitName puts the
+  // combined bilingual name in the given slot so both scripts show in the
+  // contact list and both are findable in search.
+  assert.ok(props.includes('N:;Ivan Chong 莊庭皓;;;'), `N must carry the combined name, got: ${props.filter((p) => p.startsWith('N:'))}`);
+  assert.ok(props.includes('FN:Ivan Chong 莊庭皓'), 'FN mirrors the space-joined bilingual name (no pipe)');
+  assert.ok(props.includes('X-PHONETIC-FIRST-NAME:Ivan'));
+  assert.ok(props.includes('X-PHONETIC-LAST-NAME:Chong'));
+  assert.ok(!props.some((p) => p.startsWith('NICKNAME')), 'NICKNAME must not steal the iOS display slot');
 });
 
 test('CJK-only card: N falls back to the CJK surname-first split', () => {
@@ -175,21 +182,26 @@ test('orgDisplay joins bilingual org', () => {
   assert.equal(orgDisplay({ orgLatin: 'ACME', orgCJK: ' acme ' }), 'ACME | acme');
 });
 
-test('splitName: prefer Latin for structured N, fall back to CJK when no Latin', () => {
-  // Bilingual: N should come from the Latin name (sortable on iOS), not CJK.
+test('splitName: bilingual -> combined "Latin CJK" given slot + phonetic Latin', () => {
+  // Bilingual card: iOS shows/searches the N field, so combine both scripts
+  // into the given slot and mirror the Latin reading into phonetic fields.
   const c0 = { nameCJK: '莊庭皓', nameLatin: 'Ivan Chong' };
   splitName(c0);
-  assert.equal(c0.family, 'Chong');
-  assert.equal(c0.given, 'Ivan');
+  assert.equal(c0.family, '');
+  assert.equal(c0.given, 'Ivan Chong 莊庭皓');
+  assert.equal(c0.phoneticFamily, 'Chong');
+  assert.equal(c0.phoneticGiven, 'Ivan');
   // No Latin, CJK surname-first fallback.
   const c1 = { nameCJK: '歐陽大明', nameLatin: '' };
   splitName(c1);
   assert.equal(c1.family, '歐');
   assert.equal(c1.given, '陽大明');
+  // No CJK, Latin last-word family.
   const c2 = { nameCJK: '', nameLatin: 'David (Dave) Chan' };
   splitName(c2);
   assert.equal(c2.family, 'Chan');
   assert.equal(c2.given, 'David');
+  // Explicit family/given are never overwritten.
   const c3 = { family: 'Explicit', nameCJK: '陳大文' };
   splitName(c3);
   assert.equal(c3.family, 'Explicit');

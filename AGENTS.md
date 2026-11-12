@@ -16,7 +16,7 @@ Operating contract for coding agents. Product context and user-facing docs: `REA
 ## vCard writer (`src/vcard.js`) — RFC 2426, not string concatenation
 
 - CRLF line endings; fold at 75 **octets** (never split a UTF-8 sequence); escape `\ ; ,` and newlines in TEXT values. `tests/vcard.test.js` pins this — run it after any writer change.
-- Bilingual convention: `FN:David Chan | 陳大文` (Latin first, ASCII pipe), `ORG` likewise as one atomic token. Keep `normalizePipes()` behavior.
+- Bilingual name: `splitName()` puts the combined `"Latin CJK"` name (e.g. `Ivan Chong 莊庭皓`) into the given slot of `N` and `FN` (no pipe — iOS indexes `N`/`FN` for search but not the `|` form), with the Latin reading mirrored into `X-PHONETIC-FIRST/LAST-NAME`. CJK-only cards use surname-first `N`. No `NICKNAME` field is written (it steals the iOS display slot). `displayName()` still uses the pipe (`David Chan | 陳大文`) for in-app/UI only. `ORG` joins Latin `|` CJK as one atomic token. Keep `normalizePipes()` behavior for UI display strings.
 - Empty fields are omitted, never written blank. TEL values keep digits + leading `+` only.
 - Photo: only `data:image/jpeg;base64,` from our canvas resizer; embedded as `PHOTO;ENCODING=b;TYPE=JPEG`, and **never** in QR payloads (`buildVCard(c, { photo: false })`).
 

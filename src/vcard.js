@@ -74,19 +74,25 @@ export function buildVCard(c, { photo = true } = {}) {
   const family = (c.family || '').trim();
   const given = (c.given || '').trim();
   const middle = (c.middle || '').trim();
-  const display = displayName(c);
-  // Always emit the structured N field when a name is present. On-device iOS
-  // tests (no-N files) showed that without N the contact falls back to
-  // NICKNAME ("Ivan") and the pipe-delimited bilingual FN ("Ivan Chong | 莊庭皓")
-  // is never shown as the display name. A structured N gives iOS a real,
-  // sortable display name; FN carries the combined bilingual string so both
-  // scripts stay present and Spotlight-searchable. Empty slots are preserved so
-  // the 5-part N stays well-formed (family;given;middle;prefix;suffix).
+  // iOS displays and indexes the structured N field for contact search, NOT
+  // the pipe-joined FN ("Ivan Chong | 莊庭皓" is not findable in search). For
+  // a bilingual card splitName() puts the combined "Ivan Chong 莊庭皓" into the
+  // given slot, so both scripts display in the contact list and both are
+  // searchable. FN mirrors the same space-joined name so any client that
+  // ignores N shows the identical bilingual name; the in-app pipe display
+  // (displayName) stays a web-only convention.
+  const nameFromN = [family, given, middle].filter(Boolean).join(' ');
   if (family || given || middle) {
     push(lines, 'N', [family, given, middle].map(escapeText).join(';') + ';;');
   }
-  push(lines, 'FN', escapeText(display || [family, given].filter(Boolean).join(' ')));
-  push(lines, 'NICKNAME', escapeText(c.nickname));
+  // Fallback (no structured N at all): still avoid the pipe, which iOS does
+  // not index — a plain space join keeps both scripts searchable.
+  const fallbackName = displayName(c).split(' | ').join(' ').trim();
+  push(lines, 'FN', escapeText(nameFromN || fallbackName));
+  // NICKNAME is intentionally not written: on-device testing showed iOS
+  // Contacts displaying the nickname ("Ivan") as the contact's main name,
+  // overriding the N-derived bilingual name. The editor still records it, but
+  // it would only steal the display slot from the real name.
   push(lines, 'X-PHONETIC-FIRST-NAME', escapeText(c.phoneticGiven));
   push(lines, 'X-PHONETIC-LAST-NAME', escapeText(c.phoneticFamily));
 
@@ -222,18 +228,33 @@ export function suggestedFileName(c) {
 export function splitName(c) {
   if (c.family || c.given) return;
   const latin = (c.nameLatin || '').replace(/[(（][^)）]*[)）]/g, '').trim();
-  const parts = latin.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    c.family = parts.pop();
-    c.given = parts.join(' ');
+  const cjk = (c.nameCJK || '').trim();
+  const latinParts = latin.split(/\s+/).filter(Boolean);
+
+  if (cjk && latin) {
+    // Bilingual card. iOS only displays and indexes the structured N field (the
+    // pipe-joined FN is not searchable), so put the combined "Latin CJK" name in
+    // the given-name slot, leaving family blank: N:;Ivan Chong 莊庭皓;;; . This
+    // makes BOTH scripts show in the contact list and both are findable in
+    // search. Also mirror the Latin parts into Apple's phonetic fields so the
+    // reading still renders and AI models can reconstruct either script.
+    c.family = '';
+    c.given = `${latin} ${cjk}`;
+    c.phoneticFamily = latinParts.length >= 2 ? latinParts[latinParts.length - 1] : '';
+    c.phoneticGiven = latinParts.length >= 2 ? latinParts.slice(0, -1).join(' ') : latinParts[0];
     return;
   }
-  if (parts.length === 1) {
-    c.given = parts[0];
+  if (latinParts.length >= 2) {
+    c.family = latinParts.pop();
+    c.given = latinParts.join(' ');
     return;
   }
-  if (c.nameCJK) {
-    c.family = c.nameCJK.slice(0, 1);
-    c.given = c.nameCJK.slice(1);
+  if (latinParts.length === 1) {
+    c.given = latinParts[0];
+    return;
+  }
+  if (cjk) {
+    c.family = cjk.slice(0, 1);
+    c.given = cjk.slice(1);
   }
 }
