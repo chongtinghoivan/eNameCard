@@ -126,11 +126,40 @@ test('all-empty address is omitted', () => {
   assert.ok(!v.includes('ADR'));
 });
 
-test('URLs normalize to https', () => {
+test('URLs normalize to https; labels become itemN groups (iOS link captions)', () => {
   assert.equal(normalizeUrl('example.com'), 'https://example.com');
   assert.equal(normalizeUrl('http://x.com'), 'http://x.com');
-  const v = buildVCard(card({ urls: [{ label: 'Site', value: 'example.com' }] }));
-  assert.ok(properties(v).includes('URL:https://example.com'));
+  const v = buildVCard(card({
+    urls: [
+      { label: 'LinkedIn', value: 'linkedin.com' },
+      { label: '', value: 'plain.example' },
+      { label: 'Tech Journal', value: 'x.com/journal.md' },
+    ],
+  }));
+  const props = properties(v);
+  // Apple's Address Book extension, grouped form: iOS shows the X-ABLabel
+  // caption above the link. A/B testing on-device: the parameter form
+  // (URL;X-ABLabel=...) is silently ignored; only itemN groups render.
+  assert.ok(props.includes('item1.URL:https://linkedin.com'), 'labelled URL is item1');
+  assert.ok(props.includes('item1.X-ABLabel:LinkedIn'));
+  assert.ok(props.includes('item2.URL:https://x.com/journal.md'), 'second label group is item2');
+  assert.ok(props.includes('item2.X-ABLabel:Tech Journal'));
+  assert.ok(props.includes('URL:https://plain.example'), 'unlabelled link stays a plain URL');
+});
+
+test('URL group label escaping: vCard TEXT escapes keep the value well-formed', () => {
+  const v = buildVCard(card({ urls: [{ label: 'a;b', value: 'example.com' }] }));
+  const props = properties(v);
+  assert.ok(props.includes('item1.URL:https://example.com'));
+  assert.ok(props.includes('item1.X-ABLabel:a\\;b'), 'semicolon in a TEXT value is backslash-escaped');
+});
+
+test('URL group form folds at 75 octets like any property', () => {
+  const v = buildVCard(card({ urls: [{ label: 'X', value: 'https://very-long-domain.example/' + 'a'.repeat(200) }] }));
+  for (const line of v.split('\r\n')) {
+    assert.ok(Buffer.byteLength(line) <= 75, `line over 75 octets: ${Buffer.byteLength(line)}`);
+  }
+  assert.ok(properties(v).some((l) => l.startsWith('item1.X-ABLabel:X')), 'group survives unfolding');
 });
 
 test('BDAY only when ISO date', () => {

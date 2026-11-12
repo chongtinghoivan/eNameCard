@@ -130,9 +130,23 @@ export function buildVCard(c, { photo = true } = {}) {
     prop(lines, 'ADR', `TYPE=${type}`, value);
   }
 
+  // Apple Address Book extension: link labels are tied to their URL via itemN
+  // groups (`item1.URL:…` + `item1.X-ABLabel:…`) — the exact shape Apple's
+  // own .vcf exports use. On-device A/B testing proved iOS ignores the
+  // parameter forms (`URL;X-ABLabel=…`, quoted or atom) and only renders
+  // the grouped form; a label-less link stays a plain URL property.
+  let item = 0;
   for (const u of c.urls || []) {
     const value = String(u.value || '').trim();
-    if (value) push(lines, 'URL', normalizeUrl(value));
+    if (!value) continue;
+    const label = String(u.label || '').trim();
+    if (label) {
+      item += 1;
+      push(lines, `item${item}.URL`, escapeText(normalizeUrl(value)));
+      push(lines, `item${item}.X-ABLabel`, escapeText(label));
+    } else {
+      push(lines, 'URL', normalizeUrl(value));
+    }
   }
 
   const birthday = String(c.birthday || '').trim();
