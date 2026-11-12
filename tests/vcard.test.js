@@ -50,12 +50,20 @@ test('N is structured and escaped; family/given derived when blank', () => {
   assert.ok(properties(v).includes('N:陳;大文;;;'));
 });
 
-test('bilingual card omits N so iOS falls back to FN display', () => {
+test('bilingual card: structured N carries the Latin name, FN keeps both scripts', () => {
   const c = forOutput(card({ nameCJK: '莊庭皓', nameLatin: 'Ivan Chong' }));
   const v = buildVCard(c);
   const props = properties(v);
-  assert.ok(!props.some((p) => p.startsWith('N:')), 'N must be absent for bilingual card');
+  // N is always emitted (a real, sortable display name on iOS) from the Latin
+  // name; the CJK is preserved in FN so both scripts stay present/searchable.
+  assert.ok(props.includes('N:Chong;Ivan;;;'), `N must come from the Latin name, got: ${props.filter((p) => p.startsWith('N:'))}`);
   assert.ok(props.includes('FN:Ivan Chong | 莊庭皓'));
+});
+
+test('CJK-only card: N falls back to the CJK surname-first split', () => {
+  const c = forOutput(card({ nameCJK: '陳大文', nameLatin: '' }));
+  const v = buildVCard(c);
+  assert.ok(properties(v).includes('N:陳;大文;;;'));
 });
 
 test('TEXT escaping: backslash, semicolon, comma, newline', () => {
@@ -126,20 +134,31 @@ test('BDAY only when ISO date', () => {
 test('photo: valid JPEG data URL embedded base64, omitted for QR, invalid dropped', () => {
   const photo = `data:image/jpeg;base64,${Buffer.from('fakejpeg').toString('base64')}`;
   const full = buildVCard(card({ photo }));
-  assert.ok(full.includes('PHOTO;ENCODING=b;TYPE=JPEG:'));
+  // Canonical RFC 2426 / Apple-compatible form: ENCODING=BASE64 + TYPE=JPEG.
+  assert.ok(full.includes('PHOTO;ENCODING=BASE64;TYPE=JPEG:'));
   const qr = buildVCard(card({ photo }), { photo: false });
   assert.ok(!qr.includes('PHOTO'));
   assert.ok(!buildVCard(card({ photo: 'data:image/svg+xml;base64,AAAA' })).includes('PHOTO'));
 });
 
-test('base64 photo folds without splitting the encoding', () => {
-  const photo = `data:image/jpeg;base64,${Buffer.alloc(300, 7).toString('base64')}`;
-  const v = buildVCard(card({ photo }));
+test('photo base64 is folded onto 75-octet lines (Apple/round-trip form), still byte-identical', () => {
+  const b64 = Buffer.alloc(400, 7).toString('base64'); // long, forces folding
+  const photo = `data:image/jpeg;base64,${b64}`;
+  const v = buildVCard(card({ photo, note: '中文字'.repeat(60) }));
+  // Every physical line is RFC-conformant: at most 75 octets.
   for (const line of v.split('\r\n')) {
-    assert.ok(new TextEncoder().encode(line).length <= 75);
+    assert.ok(new TextEncoder().encode(line).length <= 75, `line too long: ${line.length}`);
   }
+  // The PHOTO property line uses the canonical header; base64 is folded onto
+  // continuation lines (line 2+ begins with a single space), not one giant line.
+  const lines = v.split('\r\n');
+  const photoIdx = lines.findIndex((l) => l.startsWith('PHOTO;'));
+  assert.ok(photoIdx >= 0, 'PHOTO line present');
+  assert.ok(lines[photoIdx].startsWith('PHOTO;ENCODING=BASE64;TYPE=JPEG:'), 'canonical PHOTO header');
+  assert.ok(lines[photoIdx + 1].startsWith(' '), 'base64 continues onto a folded line');
+  // Unfolding the folded lines restores the exact base64 -> byte-identical JPEG.
   const unfolded = v.replace(/\r\n /g, '');
-  assert.ok(unfolded.includes(photo.split(',')[1]));
+  assert.ok(unfolded.includes(`PHOTO;ENCODING=BASE64;TYPE=JPEG:${b64}`));
 });
 
 test('normalizePipes folds full-width bars and collapses spacing', () => {
@@ -156,7 +175,13 @@ test('orgDisplay joins bilingual org', () => {
   assert.equal(orgDisplay({ orgLatin: 'ACME', orgCJK: ' acme ' }), 'ACME | acme');
 });
 
-test('splitName: CJK surname-first, Latin last word family', () => {
+test('splitName: prefer Latin for structured N, fall back to CJK when no Latin', () => {
+  // Bilingual: N should come from the Latin name (sortable on iOS), not CJK.
+  const c0 = { nameCJK: '莊庭皓', nameLatin: 'Ivan Chong' };
+  splitName(c0);
+  assert.equal(c0.family, 'Chong');
+  assert.equal(c0.given, 'Ivan');
+  // No Latin, CJK surname-first fallback.
   const c1 = { nameCJK: '歐陽大明', nameLatin: '' };
   splitName(c1);
   assert.equal(c1.family, '歐');

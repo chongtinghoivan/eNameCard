@@ -279,6 +279,12 @@ function publishSection() {
 async function processPhoto(file) {
   try {
     const bitmap = await createImageBitmap(file);
+    // Reject extremely wide/tall images (e.g. banners, screenshots) that would
+    // produce unusable thumbnails when shrunk to fit 480 px on the long side.
+    if (Math.max(bitmap.width, bitmap.height) / Math.min(bitmap.width, bitmap.height) > 4) {
+      bitmap.close();
+      return;
+    }
     const scale = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(bitmap.width * scale));

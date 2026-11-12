@@ -75,18 +75,17 @@ export function buildVCard(c, { photo = true } = {}) {
   const given = (c.given || '').trim();
   const middle = (c.middle || '').trim();
   const display = displayName(c);
-  // When both CJK and Latin names are present (bilingual card), iOS Contacts
-  // prioritises the structured N field over FN, so "Family Given" wins and the
-  // English name disappears from the display. Skip writing N in that case so iOS
-  // falls back to FN, which carries the combined bilingual string ("Ivan Chong |
-  // 莊庭皓") and remains searchable via Spotlight.
-  const hasBothScripts = Boolean((c.nameCJK || '').trim() && (c.nameLatin || '').trim());
-  if (!hasBothScripts && (family || given)) {
+  // Always emit the structured N field when a name is present. On-device iOS
+  // tests (no-N files) showed that without N the contact falls back to
+  // NICKNAME ("Ivan") and the pipe-delimited bilingual FN ("Ivan Chong | 莊庭皓")
+  // is never shown as the display name. A structured N gives iOS a real,
+  // sortable display name; FN carries the combined bilingual string so both
+  // scripts stay present and Spotlight-searchable. Empty slots are preserved so
+  // the 5-part N stays well-formed (family;given;middle;prefix;suffix).
+  if (family || given || middle) {
     push(lines, 'N', [family, given, middle].map(escapeText).join(';') + ';;');
-    push(lines, 'FN', escapeText(display || [family, given].filter(Boolean).join(' ')));
-  } else {
-    push(lines, 'FN', escapeText(display));
   }
+  push(lines, 'FN', escapeText(display || [family, given].filter(Boolean).join(' ')));
   push(lines, 'NICKNAME', escapeText(c.nickname));
   push(lines, 'X-PHONETIC-FIRST-NAME', escapeText(c.phoneticGiven));
   push(lines, 'X-PHONETIC-LAST-NAME', escapeText(c.phoneticFamily));
@@ -136,7 +135,16 @@ export function buildVCard(c, { photo = true } = {}) {
   push(lines, 'NOTE', escapeText(c.note));
 
   const photoData = photo ? photoBase64(c.photo) : '';
-  if (photoData) lines.push(...fold(`PHOTO;ENCODING=b;TYPE=JPEG:${photoData}`));
+  // Emit the photo exactly the way Apple's own serializer writes it, which is
+  // the only form its iOS importer renders (on-device confirmed):
+  //   PHOTO;ENCODING=BASE64;TYPE=JPEG:<base64 folded onto 75-octet lines>
+  // - `ENCODING=BASE64` (not the `b` shorthand) is the canonical RFC 2426 value
+  //   the importer expects; the abbreviated form is silently dropped on iOS.
+  // - The base64 is folded onto 75-octet continuation lines, matching how Apple
+  //   writes it. A single ~34 KB physical line is RFC-non-conformant and does
+  //   not display on iOS. base64 is pure ASCII, so folding never splits a UTF-8
+  //   sequence and the photo stays byte-identical after unfolding.
+  if (photoData) lines.push(...fold(`PHOTO;ENCODING=BASE64;TYPE=JPEG:${photoData}`));
 
   lines.push('END:VCARD');
   return lines.join(CRLF) + CRLF;
@@ -203,22 +211,29 @@ export function suggestedFileName(c) {
 }
 
 /**
- * Populate N: from the display names, surname-first for Chinese names,
- * when the user left the structured family/given fields empty.
+ * Populate N: when the user left the structured family/given fields empty.
+ *
+ * For a bilingual card the structured N should carry the Latin name
+ * (Ivan Chong -> family=Chong, given=Ivan) so iOS gets a clean, sortable
+ * display name; the Chinese name is already preserved in FN via
+ * displayName ("Ivan Chong | 莊庭皓"). Only when no Latin name is available
+ * do we fall back to a CJK surname-first split.
  */
 export function splitName(c) {
   if (c.family || c.given) return;
-  if (c.nameCJK) {
-    c.family = c.nameCJK.slice(0, 1);
-    c.given = c.nameCJK.slice(1);
-    return;
-  }
   const latin = (c.nameLatin || '').replace(/[(（][^)）]*[)）]/g, '').trim();
   const parts = latin.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {
     c.family = parts.pop();
     c.given = parts.join(' ');
-  } else if (parts.length === 1) {
+    return;
+  }
+  if (parts.length === 1) {
     c.given = parts[0];
+    return;
+  }
+  if (c.nameCJK) {
+    c.family = c.nameCJK.slice(0, 1);
+    c.given = c.nameCJK.slice(1);
   }
 }
