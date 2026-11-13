@@ -88,7 +88,6 @@ body.card-mode .masthead .trust {
 
 .locale {
   display: inline-flex;
-  gap: 1rem;
   margin: 0.9rem 0 0;
   padding: 0.35rem 0.9rem;
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -104,11 +103,26 @@ body.card-mode .masthead .trust {
   clip: rect(0 0 0 0);
 }
 
-.locale label {
+.locale .locale-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+}
+
+.locale select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 1.1em 0 0;
   cursor: pointer;
+}
+
+/* The "· 中文" suffix of a bilingual line, hidden in the English locale
+   (its display is set inline by applyLocale). */
+.i18n-suffix {
+  font-weight: 400;
+  opacity: 0.9;
 }
 
 .card-panel {

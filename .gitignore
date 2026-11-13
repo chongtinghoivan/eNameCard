@@ -5,3 +5,5 @@ dist/
 .DS_Store
 *.log
 .vite/
+# Agnes session workspace (uploads, caches, scratch files) - never commit
+.agnes/

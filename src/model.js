@@ -39,12 +39,14 @@ export function defaultCard() {
     note: '',
     photo: '',
     cardUrl: '',
+    uiLocale: '',
   };
 }
 
 const STRING_FIELDS = [
   'nameCJK', 'nameLatin', 'family', 'given', 'middle', 'phoneticGiven', 'phoneticFamily',
   'nickname', 'orgLatin', 'orgCJK', 'department', 'title', 'birthday', 'note', 'photo', 'cardUrl',
+  'uiLocale',
 ];
 
 function str(v) {

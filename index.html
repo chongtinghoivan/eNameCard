@@ -14,17 +14,22 @@
   <body>
     <header class="masthead">
       <h1>eNameCard</h1>
-      <p class="tagline">Create your own digital name card · <span data-i18n="tagline">自製電子名片 · 一掃即存</span></p>
+      <p class="tagline">Create your own digital name card<span class="i18n-suffix"> · <span data-i18n="tagline">自製電子名片 · 一掃即存</span></span></p>
       <p class="trust">
         No analytics, no backend, no account. Your draft never leaves the browser;
         only the card you publish is hosted — as plain static files in your own
-        GitHub Pages ·
-        <span data-i18n="trust">沒有分析、沒有後端、沒有帳戶。草稿只存在你的瀏覽器裡；只有你主動發布的名片會存到「你自己的」GitHub Pages，以純靜態檔案形式公開。</span>
+        GitHub Pages<span class="i18n-suffix"> ·
+        <span data-i18n="trust">沒有分析、沒有後端、沒有帳戶。草稿只存在你的瀏覽器裡；只有你主動發布的名片會存到「你自己的」GitHub Pages，以純靜態檔案形式公開。</span></span>
       </p>
       <fieldset class="locale" id="locale-set">
         <legend>語言 Language</legend>
-        <label><input type="radio" name="locale" value="hant" checked /><span>繁體 Traditional</span></label>
-        <label><input type="radio" name="locale" value="hans" /><span>簡体 Simplified</span></label>
+        <label class="locale-label">
+          <select name="locale" aria-label="Language">
+            <option value="en">English</option>
+            <option value="hant">繁體中文</option>
+            <option value="hans">简体中文</option>
+          </select>
+        </label>
       </fieldset>
     </header>
 

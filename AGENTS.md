@@ -28,7 +28,7 @@ Operating contract for coding agents. Product context and user-facing docs: `REA
 
 ## UI conventions
 
-- Bilingual labels: fixed English + `·` + Chinese via `bi(en, key)`; Chinese swaps 繁/簡 as a whole through the curated dictionary in `src/i18n.js`. Never use a fuzzy auto-converter; add new strings to `STRINGS`.
+- Bilingual labels: `bi(en, key)` renders `English · 中文` in CJK locales and **English only** in the `en` locale. Locales are `en` / `hant` / `hans` (`src/i18n.js` `LOCALES`); the CJK half is a curated dictionary, never a fuzzy auto-converter — add new strings to `STRINGS` (all three scripts). `en` values are required only for the hint/error strings that render via a standalone `t()` call; label keys take their English from the `bi()` literal. Initial locale: visitor's stored choice → owner pin (`card.json` `uiLocale`) → `navigator.language` detection → English. The locale choice is **never** written into the `.vcf`/QR.
 - User data into the DOM only via `textContent`; links through `normalizeUrl()` (forces http/https); photo `src` only after the JPEG data-URL whitelist in `normalizeCard()`.
 - Routing: `public/card.json` with a name/org → published card at root; `#edit` (or no card.json) → editor. Draft persists in `localStorage['enamecard.card.v1']`.
 - Share contact is always visible: native file share first, in-page fallback menu (copy link / copy vCard / email) when unsupported or rejected. Never gate it behind `canShare()` alone — desktop Chrome can report support yet reject `.vcf` files.

@@ -5,7 +5,7 @@ import {
   PHONE_TYPES, EMAIL_TYPES, ADDRESS_TYPES,
 } from './model.js';
 import { qrPayload, qrSvg, qrPngDataUrl, QR_MAX_BYTES } from './qr.js';
-import { t, onLocaleChange, bindLocaleToggle } from './i18n.js';
+import { t, onLocaleChange, bindLocaleToggle, getLocale } from './i18n.js';
 import './style.css';
 
 const STORE_KEY = 'enamecard.card.v1';
@@ -40,9 +40,12 @@ function persist() {
   }
 }
 
-/** Bilingual label: fixed English half + script-swapping Chinese half. */
+/**
+ * Bilingual label. CJK locales show "English · 中文"; the English locale
+ * drops the CJK half so a connection's card reads in plain English.
+ */
 function bi(en, key) {
-  return `${en} · ${t(key)}`;
+  return getLocale() === 'en' ? en : `${en} · ${t(key)}`;
 }
 
 function el(tag, className, text) {
@@ -776,7 +779,7 @@ function route() {
 async function boot() {
   form.addEventListener('submit', (e) => e.preventDefault());
   published = await fetchPublished();
-  bindLocaleToggle();
+  bindLocaleToggle(published ? published.card.uiLocale : '');
   onLocaleChange(route);
   window.addEventListener('hashchange', route);
   route();
