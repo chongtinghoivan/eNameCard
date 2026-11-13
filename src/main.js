@@ -13,6 +13,9 @@ const STORE_KEY = 'enamecard.card.v1';
 let card = loadStored();
 let published = null;
 let qrMode = 'auto';
+// The canonical template demo (the "before" in the before/after story). A
+// personal card's footer credits this; a visitor who wants one forks from here.
+const TEMPLATE_URL = 'https://enamecard-app.pages.dev/';
 
 const editorView = document.getElementById('editor-view');
 const cardView = document.getElementById('card-view');
@@ -709,17 +712,28 @@ function renderPublished() {
   wrap.append(qrPanel);
 
   const footer = el('div', 'published-footer');
-  const editCopy = el('button', '', bi('Edit a copy', 'edit-copy'));
-  editCopy.type = 'button';
-  editCopy.addEventListener('click', () => {
-    card = normalizeCard(c);
-    persist();
-    location.hash = '#edit';
-  });
-  const own = el('a', '', bi('Create your own eNameCard', 'create-own'));
-  own.href = 'https://github.com/chongtinghoivan/eNameCard';
-  own.rel = 'noopener';
-  footer.append(editCopy, own);
+  if (published.sample) {
+    // Template / "before" mode: this is the demo card — invite forking.
+    const editCopy = el('button', '', bi('Edit a copy', 'edit-copy'));
+    editCopy.type = 'button';
+    editCopy.addEventListener('click', () => {
+      card = normalizeCard(c);
+      persist();
+      location.hash = '#edit';
+    });
+    const own = el('a', '', bi('Create your own eNameCard', 'create-own'));
+    own.href = 'https://github.com/chongtinghoivan/eNameCard';
+    own.rel = 'noopener';
+    footer.append(editCopy, own);
+  } else {
+    // Personal / "after" mode: keep it clean. No "Edit a copy" — the card owner
+    // edits via #edit directly. A quiet credit points a curious visitor to the
+    // template, not away from this person's card.
+    const credit = el('a', 'made-with', bi('Made with eNameCard', 'made-with'));
+    credit.href = TEMPLATE_URL;
+    credit.rel = 'noopener';
+    footer.append(credit);
+  }
   wrap.append(footer);
 
   cardView.append(wrap);
@@ -746,6 +760,9 @@ function route() {
   const wantEditor = location.hash === '#edit' || !published;
   editorView.hidden = !wantEditor;
   cardView.hidden = wantEditor;
+  // A personal (non-sample) card page is connection-facing: keep only the
+  // wordmark above the fold. The template/sample card keeps its marketing.
+  document.body.classList.toggle('card-mode', !wantEditor && published && !published.sample);
   if (wantEditor) {
     document.title = 'eNameCard — create your own digital name card';
     renderForm();

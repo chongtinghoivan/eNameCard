@@ -73,6 +73,19 @@ main {
   opacity: 0.85;
 }
 
+/* Personal card view (body.card-mode): the masthead above the fold shows
+   only the "eNameCard" wordmark — tagline and trust copy are template-mode
+   marketing, not part of a connection's card page. */
+body.card-mode .masthead .tagline,
+body.card-mode .masthead .trust {
+  display: none;
+}
+
+.made-with {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
 .locale {
   display: inline-flex;
   gap: 1rem;

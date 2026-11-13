@@ -71,6 +71,7 @@ export const STRINGS = {
   'save-contact': { hant: '儲存聯絡人', hans: '储存联系人' },
   'create-own': { hant: '製作自己的電子名片', hans: '制作自己的电子名片' },
   'edit-copy': { hant: '編輯副本', hans: '编辑副本' },
+  'made-with': { hant: '以 eNameCard 製作', hans: '以 eNameCard 制作' },
   'view-card': { hant: '預覽名片', hans: '预览名片' },
   'back-to-edit': { hant: '返回編輯', hans: '返回编辑' },
   'choose-photo': { hant: '選擇頭像', hans: '选择头像' },
