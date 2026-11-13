@@ -729,13 +729,14 @@ function renderPublished() {
     own.rel = 'noopener';
     footer.append(editCopy, own);
   } else {
-    // Personal / "after" mode: keep it clean. No "Edit a copy" — the card owner
-    // edits via #edit directly. A quiet credit points a curious visitor to the
-    // template, not away from this person's card.
-    const credit = el('a', 'made-with', bi('Made with eNameCard', 'made-with'));
-    credit.href = TEMPLATE_URL;
-    credit.rel = 'noopener';
-    footer.append(credit);
+    // Personal / "after" mode: keep it clean. No "Edit a copy". A single,
+    // understated CTA sends a curious visitor to the template's editor so
+    // they can fill in their own details and download their .vcf — the
+    // "make your own" path, without this person's card carrying marketing.
+    const cta = el('a', 'make-your', bi('Make your eNameCard', 'make-your'));
+    cta.href = TEMPLATE_URL + '#edit';
+    cta.rel = 'noopener';
+    footer.append(cta);
   }
   wrap.append(footer);
 

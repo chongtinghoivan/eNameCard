@@ -295,10 +295,10 @@ export const STRINGS = {
     "hant": "編輯副本",
     "hans": "编辑副本"
   },
-  "made-with": {
-    "en": "Made with eNameCard",
-    "hant": "以 eNameCard 製作",
-    "hans": "以 eNameCard 制作"
+  "make-your": {
+    "en": "Make your eNameCard",
+    "hant": "製作你的電子名片",
+    "hans": "制作你的电子名片"
   },
   "view-card": {
     "en": "View published card",

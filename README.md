@@ -31,6 +31,14 @@ but never into the QR (a photo would blow past QR capacity).
 Open the published site, go to `#edit`, fill in the form, and download your `.vcf` and QR
 code. Your draft auto-saves in your browser's local storage — nothing is uploaded anywhere.
 
+Every deployed **personal** card shows a quiet "**Make your eNameCard · 製作你的電子名片**"
+link in its footer that opens the template editor (`enamecard-app.pages.dev/#edit`). A
+visitor who scans your card taps it, fills in *their* details and photo, downloads *their*
+`.vcf`, and hands it to their AI agent to fork and deploy their own card — the "make your
+own" path that personal cards keep out of sight otherwise. (The template card itself,
+flagged `"sample": true` in `card.json`, instead shows the fuller creator surface: an
+**Edit a copy** button + **Create your own eNameCard** link + the sample banner.)
+
 ## Publish your own card page (fork → deploy)
 
 1. **Fork** this repo on GitHub.
